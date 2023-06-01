@@ -90,7 +90,7 @@ end
 	end)
 
 	local settings = {
-		keybind = Enum.KeyCode.E
+		keybind = Enum.KeyCode.Q
 	}
 
 	local UIS = game:GetService("UserInputService")
