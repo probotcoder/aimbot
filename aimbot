@@ -1,85 +1,124 @@
-local dwCamera = workspace.CurrentCamera
-local dwRunService = game:GetService("RunService")
-local dwUIS = game:GetService("UserInputService")
-local dwEntities = game:GetService("Players")
-local dwLocalPlayer = dwEntities.LocalPlayer
-local dwMouse = dwLocalPlayer:GetMouse()
+-- Gui to Lua
+-- Version: 3.2
 
-local settings = {
-	Aimbot = true,
-	Aiming = false,
-	Aimbot_AimPart = "Head",
-	Aimbot_TeamCheck = true,
-	Aimbot_Draw_FOV = true,
-	Aimbot_FOV_Radius = 200,
-	Aimbot_FOV_Color = Color3.fromRGB(255,255,255)
-}
+-- Instances:
 
-local fovcircle = Drawing.new("Circle")
-fovcircle.Visible = settings.Aimbot_Draw_FOV
-fovcircle.Radius = settings.Aimbot_FOV_Radius
-fovcircle.Color = settings.Aimbot_FOV_Color
-fovcircle.Thickness = 1
-fovcircle.Filled = false
-fovcircle.Transparency = 1
+local ScreenGui = Instance.new("ScreenGui")
+local Aimbot = Instance.new("Frame")
+local Title = Instance.new("TextLabel")
+local Toggle = Instance.new("TextButton")
 
-fovcircle.Position = Vector2.new(dwCamera.ViewportSize.X / 2, dwCamera.ViewportSize.Y / 2)
+--Properties:
 
-dwUIS.InputBegan:Connect(function(i)
-	if i.UserInputType == Enum.UserInputType.MouseButton2 then
-		settings.Aiming = true
-	end
-end)
+ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.ResetOnSpawn = false
 
-dwUIS.InputEnded:Connect(function(i)
-	if i.UserInputType == Enum.UserInputType.MouseButton2 then
-		settings.Aiming = false
-	end
-end)
 
-dwRunService.RenderStepped:Connect(function()
+Aimbot.Name = "Aimbot"
+Aimbot.Parent = ScreenGui
+Aimbot.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Aimbot.Position = UDim2.new(0.362482369, 0, 0.402898639, 0)
+Aimbot.Size = UDim2.new(0, 128, 0, 199)
+Aimbot.Active = true
+Aimbot.Draggable = true
 
-	local dist = math.huge
-	local closest_char = nil
+Title.Name = "Title"
+Title.Parent = Aimbot
+Title.BackgroundColor3 = Color3.fromRGB(12, 16, 255)
+Title.Position = UDim2.new(-0.00329470634, 0, -0.0443376303, 0)
+Title.Size = UDim2.new(0, 127, 0, 50)
+Title.Font = Enum.Font.SourceSans
+Title.Text = "Aimbot/Aimassist"
+Title.TextColor3 = Color3.fromRGB(0, 0, 0)
+Title.TextScaled = true
+Title.TextSize = 14.000
+Title.TextWrapped = true
 
-	if settings.Aiming then
+Toggle.Name = "Toggle"
+Toggle.Parent = Aimbot
+Toggle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Toggle.BackgroundTransparency = 1.000
+Toggle.Position = UDim2.new(0.0234375, 0, 0.442211062, 0)
+Toggle.Size = UDim2.new(0, 120, 0, 50)
+Toggle.Font = Enum.Font.SourceSans
+Toggle.Text = "Off"
+Toggle.TextColor3 = Color3.fromRGB(255, 6, 10)
+Toggle.TextScaled = true
+Toggle.TextSize = 14.000
+Toggle.TextWrapped = true
 
-		for i,v in next, dwEntities:GetChildren() do 
 
-			if v ~= dwLocalPlayer and
-				v.Character and
-				v.Character:FindFirstChild("HumanoidRootPart") and
-				v.Character:FindFirstChild("Humanoid") and
-				v.Character:FindFirstChild("Humanoid").Health > 0 then
+local function PNHLOYF_fake_script() -- Toggle.LocalScript 
+	local script = Instance.new('LocalScript', Toggle)
 
-				if settings.Aimbot_TeamCheck == true and
-					v.Team ~= dwLocalPlayer.Team or
-					settings.Aimbot_TeamCheck == false then
+	_G.aimbot = false
+	local camera = game.Workspace.CurrentCamera
+	local localplayer = game:GetService("Players").LocalPlayer
 
-					local char = v.Character
-					local char_part_pos, is_onscreen = dwCamera:WorldToViewportPoint(char[settings.Aimbot_AimPart].Position)
+	script.Parent.MouseButton1Click:Connect(function()
+		if _G.aimbot == false then
+			_G.aimbot = true
+			script.Parent.TextColor3 = Color3.fromRGB(0,170,0)
+			script.Parent.Text = "On"
+function closestplayer()
+    local mouse = localplayer:GetMouse()
+    local dist = math.huge
+    local target = nil
+    for i,v in pairs(game:GetService("Players"):GetPlayers()) do
+        if v ~= localplayer and v.Team ~= localplayer.Team then
+            if v.Character and v.Character:FindFirstChild("Head") and _G.aimbot and v.Character.Humanoid.Health > 0 then
+                local screenpoint = camera:WorldToScreenPoint(v.Character.Head.Position)
+                local magnitude = (Vector2.new(mouse.X, mouse.Y) - Vector2.new(screenpoint.X, screenpoint.Y)).magnitude
+                if magnitude < dist then
+                    dist = magnitude
+                    target = v
+                end
+            end
+        end
+    end
+    return target
+end
 
-					if is_onscreen then
 
-						local mag = (Vector2.new(dwMouse.X, dwMouse.Y) - Vector2.new(char_part_pos.X, char_part_pos.Y)).Magnitude
 
-						if mag < dist and mag < settings.Aimbot_FOV_Radius then
-
-							dist = mag
-							closest_char = char
-
-						end
-					end
-				end
-			end
+		else
+			_G.aimbot = false
+			script.Parent.TextColor3 = Color3.fromRGB(255,0,0)
+			script.Parent.Text = "Off"
 		end
+	end)
 
-		if closest_char ~= nil and
-			closest_char:FindFirstChild("HumanoidRootPart") and
-			closest_char:FindFirstChild("Humanoid") and
-			closest_char:FindFirstChild("Humanoid").Health > 0 then
+	local settings = {
+		keybind = Enum.KeyCode.E
+	}
 
-			dwCamera.CFrame = CFrame.new(dwCamera.CFrame.Position, closest_char[settings.Aimbot_AimPart].Position)
-		end
-	end
+	local UIS = game:GetService("UserInputService")
+	local aiming = false
+
+
+UIS.InputBegan:Connect(function(inp)
+    if inp.KeyCode == settings.keybind then
+        aiming = not aiming
+    end
 end)
+
+UIS.InputEnded:Connect(function(inp)
+    -- Do nothing
+end)
+
+    
+
+
+
+
+
+
+
+	game:GetService("RunService").RenderStepped:Connect(function()
+		if aiming then
+			camera.CFrame = CFrame.new(camera.CFrame.Position,closestplayer().Character.Head.Position) -- locks into the HEAD
+		end
+	end)
+end
+coroutine.wrap(PNHLOYF_fake_script)()
